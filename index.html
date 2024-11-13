@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record User Location</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #location {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Record Your Location</h1>
+        <button onclick="recordLocation()">Get Location</button>
+        <div id="location"></div>
+        <div id="valid"></div>
+    </div>
+
+    <script>
+        function recordLocation() {
+            // Check if Geolocation is supported
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                document.getElementById('location').textContent = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            // Display the latitude and longitude
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const boo = isWithinRadius()
+            document.getElementById('location').textContent = 
+                `Latitude: ${latitude}°, Longitude: ${longitude}°`;
+            document.getElementById('valid').textContent = 
+                `Latitude: ${latitude}°, Longitude: ${longitude}°`;    
+        }
+
+        function showError(error) {
+            // Handle errors
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById('location').textContent = "User denied the request for Geolocation.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById('location').textContent = "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById('location').textContent = "The request to get user location timed out.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById('location').textContent = "An unknown error occurred.";
+                    break;
+            }
+        }
+        // Function to calculate distance between two coordinates using the Haversine formula
+        function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Radius of the Earth in meters
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a = 
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c; // Distance in meters
+            return distance;
+        }
+
+        // Helper function to convert degrees to radians
+        function deg2rad(deg) {
+            return deg * (Math.PI / 180);
+        }
+
+        // Function to check if the extracted coordinate is within the 250-meter radius
+        function isWithinRadius(givenLat, givenLon, extractedLat, extractedLon, radius = 250) {
+            const distance = getDistanceFromLatLonInMeters(givenLat, givenLon, extractedLat, extractedLon);
+            return distance <= radius;
+        }
+
+        // Example usage
+        const givenLat = 12.9715987;  // Latitude of known coordinate
+        const givenLon = 77.594566;   // Longitude of known coordinate
+
+        const extractedLat = 12.972;  // Latitude of extracted coordinate
+        const extractedLon = 77.594;  // Longitude of extracted coordinate
+
+        if (isWithinRadius(givenLat, givenLon, extractedLat, extractedLon)) {
+            console.log("The extracted coordinate is within 250 meters of the given coordinate.");
+        } else {
+            console.log("The extracted coordinate is NOT within 250 meters of the given coordinate.");
+        }
+
+    </script>
+</body>
+</html>
